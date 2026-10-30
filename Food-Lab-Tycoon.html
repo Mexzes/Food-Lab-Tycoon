@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Food Lab Tycoon</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e8f3f0;--wall:#dcefea;--floor:#c3e0d8;--card:#fff;--ink:#27443e;--mut:#5b766f;--line:#cfe3de;--acc:#2f8570;--onacc:#fff;--sky:#bfe2f2;--butter:#fbe6a2;--peach:#ffd1b3;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16282a;--wall:#1d3535;--floor:#173030;--card:#213a3b;--ink:#e6f4ef;--mut:#9bb8b1;--line:#35524f;--acc:#7ad8bd;--onacc:#0f2a26}}
+:root[data-theme="dark"]{--bg:#16282a;--wall:#1d3535;--floor:#173030;--card:#213a3b;--ink:#e6f4ef;--mut:#9bb8b1;--line:#35524f;--acc:#7ad8bd;--onacc:#0f2a26}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{height:100%;margin:0} body{min-height:100dvh}
+body{background:var(--bg);color:var(--ink);font:400 17px/1.55 Prompt,system-ui,sans-serif;overflow:hidden}
+#dots{display:flex;gap:6px;justify-content:center;align-items:center;height:30px;visibility:hidden}
+.dot{width:28px;height:7px;border-radius:4px;background:var(--line);transition:background .5s}.dot.on{background:var(--acc)}
+#stage{position:relative;height:calc(100% - 30px);height:calc(100dvh - 30px)}
+.screen{position:absolute;inset:0;display:flex;padding:8px 18px 24px;overflow:auto;opacity:0;visibility:hidden;transform:translateY(14px);transition:opacity .5s,transform .5s,visibility .5s}
+.screen.on{opacity:1;visibility:visible;transform:none}
+.in{margin:auto;width:100%;max-width:460px;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;position:relative}
+h1,h2{margin:0;font-weight:600}h1{font-size:clamp(34px,9.5vw,52px);line-height:1.25}h2{font-size:28px}
+.sub{margin:0;color:var(--mut)}
+.glass{background:color-mix(in srgb,var(--card) 84%,transparent);border-radius:32px;padding:34px 24px;box-shadow:0 10px 40px rgba(40,90,80,.15)}
+.bg{position:absolute;inset:0;width:100%;height:100%}
+.btn{font:inherit;font-weight:600;font-size:20px;border:0;border-radius:999px;padding:14px 34px;background:var(--acc);color:var(--onacc);box-shadow:0 5px 0 rgba(0,0,0,.2);cursor:pointer;transition:transform .12s,box-shadow .12s;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.2)}.btn[disabled]{opacity:.4;pointer-events:none}
+.btn.soft{background:var(--card);color:var(--ink);border:2px solid var(--line)}.btn.big{font-size:26px;padding:18px 54px}
+:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+.card{background:var(--card);border-radius:24px;padding:16px;width:100%;box-shadow:0 6px 22px rgba(40,90,80,.12);position:relative;display:flex;flex-direction:column;align-items:center;gap:10px}
+.acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.row{display:grid;grid-template-columns:16px 1fr 46px;gap:4px 8px;align-items:center;text-align:left}.row b{text-align:right}
+.sw{width:14px;height:14px;border-radius:50%;background:var(--c)}
+input[type=range]{grid-column:1/-1;-webkit-appearance:none;appearance:none;width:100%;height:12px;border-radius:6px;background:var(--line);margin:6px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:32px;height:32px;border-radius:50%;background:var(--c,var(--acc));border:4px solid var(--card);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--c,var(--acc));border:4px solid var(--card);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.tot{display:flex;gap:10px;align-items:baseline;font-size:20px}.tot b{font-size:34px}
+.glow{animation:gl 1.6s ease-in-out infinite}@keyframes gl{50%{filter:drop-shadow(0 0 14px #7be0b8)}}
+.bar{width:100%;height:20px;border-radius:10px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--acc);border-radius:10px;transition:width .25s}
+#rotor{transform-box:fill-box;transform-origin:center;transition:transform .4s}
+.hold{width:100%;padding:22px;font-size:22px}
+.gwrap{position:relative;width:70px;height:250px;flex:none}
+.gauge{position:absolute;left:0;top:0;width:54px;height:250px;border-radius:27px;border:3px solid var(--line);background:linear-gradient(to top,var(--sky),var(--butter),var(--peach))}
+.zone{position:absolute;left:0;right:0;bottom:45%;height:27%;background:rgba(70,190,120,.55);border-block:2px dashed #2f8f5b}
+.mk{position:absolute;left:-6px;right:-6px;height:12px;border-radius:6px;background:var(--ink)}
+.zl{position:absolute;left:60px;bottom:45%;height:27%;display:flex;align-items:center;font-size:13px;color:#2f8f5b;font-weight:600;width:60px}
+.dial{width:170px;height:170px;border-radius:50%;display:grid;place-items:center;position:relative;border:8px solid;color:#1f3a44;font-size:40px;font-weight:600;transition:background .2s}
+.tick{position:absolute;left:50%;top:8px;width:6px;height:34px;margin-left:-3px;border-radius:3px;background:#1f3a44;transform-origin:50% 69px}
+.ov{position:absolute;inset:0;border-radius:24px;background:color-mix(in srgb,var(--sky) 90%,transparent);color:#1f3a44;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .6s;font-size:30px;font-weight:600}
+.ov.on{opacity:1}.ov span{font-size:64px;animation:pp .8s both}@keyframes pp{from{transform:scale(.2) rotate(-90deg)}to{transform:none}}
+.opt{display:grid;grid-template-columns:56px 1fr;text-align:left;align-items:center;width:100%;font:inherit;color:var(--ink);background:var(--card);border:3px solid var(--line);border-radius:22px;padding:14px;cursor:pointer;gap:0 8px;position:relative}
+.opt:hover{border-color:var(--acc)}.opt .e{font-size:38px;grid-row:span 2}.opt small{color:var(--mut)}
+.fit{position:absolute;right:12px;top:-10px;background:var(--acc);color:var(--onacc);font-size:13px;padding:2px 10px;border-radius:99px}
+.mstep{display:flex;flex-direction:column;gap:12px;align-items:center;width:100%}
+input[type=text]{font:inherit;width:100%;padding:12px 16px;border-radius:16px;border:3px solid var(--line);background:var(--card);color:var(--ink);text-align:center}
+.pkg{width:176px;padding:18px 12px;border-radius:18px;text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center;transform:rotate(-2deg);box-shadow:0 8px 20px rgba(0,0,0,.18)}
+.pkg .pe{font-size:46px}.pkg b{font-size:20px;line-height:1.15;overflow-wrap:anywhere}.pkg small{opacity:.8}
+.pkg.eco{background:#cfeacb;color:#1f4a2e;border:4px solid #7fc08a}
+.pkg.bold{color:#7a1f14;border:4px solid #ffd54a;background:repeating-linear-gradient(45deg,#ff9d5c 0 14px,#ffb36f 14px 28px)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}.stats b{display:block;font-size:22px}.stats small{color:var(--mut);font-size:13px;line-height:1.2;display:block}
+.sp{position:fixed;font-size:26px;pointer-events:none;z-index:50;animation:fly 1.1s ease-out forwards}
+@keyframes fly{from{transform:translate(0,0) scale(.5);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(1.2);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Food Lab Tycoon expansion */
+#dots{padding:0 12px;gap:5px}
+.dot{flex:1;max-width:54px;width:auto;height:7px}
+.screen{padding:12px clamp(12px,3vw,28px) 30px}
+.in.wide{max-width:1000px;gap:16px}
+.cover-kicker{font-size:12px;font-weight:600;letter-spacing:2px;color:var(--acc);background:var(--card);border-radius:99px;padding:6px 14px}
+.cover-emojis{display:flex;gap:14px;font-size:clamp(28px,6vw,44px);align-items:center;justify-content:center}
+.cover-emojis span{display:inline-block;animation:bob 2.2s ease-in-out infinite}
+.cover-emojis span:nth-child(2n){animation-delay:.3s}.cover-emojis span:nth-child(3n){animation-delay:.6s}
+@keyframes bob{50%{transform:translateY(-8px) rotate(5deg)}}
+.cover-note{color:var(--mut);font-size:12px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;flex-wrap:wrap}
+.section-head .sub{flex:1;text-align:left;min-width:220px}
+.tag{display:inline-flex;align-items:center;gap:5px;border-radius:99px;background:var(--line);padding:5px 11px;font-size:12px;font-weight:600;color:var(--ink)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;width:100%;box-shadow:0 5px 18px rgba(30,70,60,.08)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:100%;align-items:stretch}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%}
+.muted{color:var(--mut)}
+.small{font-size:13px;line-height:1.45}
+.btn.small-btn{font-size:15px;padding:9px 16px}
+.btn:focus-visible,.choice:focus-visible,.swatch:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+.choice{font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:17px;padding:11px;cursor:pointer;text-align:left;display:flex;gap:10px;align-items:center;transition:.18s;min-width:0}
+.choice:hover,.choice.selected{border-color:var(--acc);box-shadow:0 0 0 2px color-mix(in srgb,var(--acc) 18%,transparent)}
+.choice .emoji{font-size:30px;flex:none}.choice strong{display:block;font-size:14px}.choice small{display:block;color:var(--mut);font-size:11px;line-height:1.35}
+.field{display:flex;flex-direction:column;gap:6px;text-align:left;width:100%;font-size:14px;font-weight:600}
+.field input,.field select,.field textarea{font:inherit;font-weight:400;width:100%;padding:11px 13px;border:2px solid var(--line);border-radius:13px;background:var(--card);color:var(--ink);min-width:0}
+.field textarea{min-height:76px;resize:vertical}
+.swatches{display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-start}
+.swatch{width:34px;height:34px;border-radius:50%;border:3px solid var(--card);box-shadow:0 0 0 1px var(--line);cursor:pointer}
+.swatch.selected{box-shadow:0 0 0 3px var(--acc)}
+.package-preview{width:min(100%,270px);min-height:220px;border-radius:22px;padding:16px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:0 12px 28px rgba(0,0,0,.17);border:3px solid rgba(0,0,0,.12);transition:background .25s,transform .25s}
+.package-preview .pack-emoji{font-size:65px;filter:drop-shadow(0 4px 3px rgba(0,0,0,.15));z-index:1}
+.label-sticker{position:absolute;left:12%;right:12%;bottom:12px;background:rgba(255,255,255,.92);color:#233b35;border-radius:12px;padding:7px 9px;box-shadow:0 3px 8px rgba(0,0,0,.13);z-index:2;text-align:center;line-height:1.25}
+.label-sticker b{display:block;font-size:15px;overflow-wrap:anywhere}.label-sticker small{font-size:10px;display:block;overflow-wrap:anywhere}
+.preview-layout{display:flex;gap:18px;align-items:center;justify-content:center;flex-wrap:wrap;width:100%}
+.preview-copy{max-width:360px;text-align:left;display:grid;gap:8px}
+.info-list{padding-left:20px;margin:4px 0;text-align:left;font-size:13px}
+.info-list li{margin:3px 0}
+.machine{background:linear-gradient(145deg,#e5f5f2,#c6e6df);border:1px solid #a8d2c7;border-radius:24px;padding:12px;width:100%;color:#234b43}
+.machine svg{width:100%;max-height:260px;display:block}
+#hppProduct{transform:translateX(-250px);transition:transform 1s ease}
+#hppProduct.inside{transform:translateX(0)}
+#hppProduct.outside{transform:translateX(250px)}
+#hppWater{transform-origin:center;animation:waterPulse 2s ease-in-out infinite}
+@keyframes waterPulse{50%{opacity:.35}}
+.pressure-bar{height:16px;border-radius:99px;background:#d4e5e1;overflow:hidden;width:100%}
+.pressure-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#5bb7ab,#256eaf);border-radius:99px;transition:width .3s}
+.step-pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:100%}
+.step-pills span{padding:6px 10px;border-radius:99px;background:var(--line);font-size:12px;color:var(--mut)}
+.step-pills span.active{background:var(--acc);color:var(--onacc)}
+.feedback{min-height:28px;font-weight:600;color:var(--acc)}
+.scoreline{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.scoreline span{background:var(--line);border-radius:12px;padding:7px 12px;font-size:13px}
+.audience-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+.audience{display:flex;gap:8px;align-items:flex-start;text-align:left;border:2px solid var(--line);padding:11px;border-radius:15px;background:var(--card);font-size:13px}
+.audience input{width:18px;height:18px;accent-color:var(--acc);flex:none;margin-top:3px}
+.store-product{display:flex;gap:18px;align-items:center;justify-content:center;flex-wrap:wrap}
+.store-product .package-preview{width:190px;min-height:190px}
+.store-details{flex:1;min-width:220px;text-align:left;display:grid;gap:5px}
+.price{font-size:28px;font-weight:700;color:var(--acc)}
+.review{background:var(--bg);border-radius:14px;padding:10px 12px;text-align:left;font-size:13px}
+.review .stars{color:#d99a16;font-size:16px;letter-spacing:1px}
+.metric{background:var(--bg);border-radius:15px;padding:12px 7px;text-align:center;min-width:0}
+.metric b{font-size:clamp(17px,3vw,25px);display:block;overflow-wrap:anywhere}.metric small{font-size:11px;color:var(--mut);display:block}
+.note-box{width:100%;text-align:left;background:color-mix(in srgb,#fbe6a2 35%,var(--card));border:1px solid #ead38b;border-radius:15px;padding:12px;color:#5e4b1f;font-size:12px}
+.difficulty-panel{width:100%;display:grid;gap:8px;background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--line);border-radius:18px;padding:12px}
+.difficulty-panel>small{color:var(--mut);font-size:11px;line-height:1.4}
+.difficulty-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.difficulty-choice{font:inherit;font-size:12px;font-weight:600;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px;padding:9px 4px;cursor:pointer;transition:transform .15s,border-color .15s,background .15s}
+.difficulty-choice:hover{transform:translateY(-2px);border-color:var(--acc)}
+.difficulty-choice.selected{background:var(--acc);border-color:var(--acc);color:var(--onacc);box-shadow:0 3px 0 rgba(0,0,0,.12)}
+#hppSlider{width:100%;accent-color:var(--acc)}
+#tempTimerBar{background:linear-gradient(90deg,#69c69d,#e8b44c);transition:width .3s}
+@media(max-width:420px){.difficulty-options{grid-template-columns:1fr}.difficulty-choice{padding:8px}}
+@media(max-width:650px){
+ body{font-size:15px}.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}.in.wide{gap:12px}h2{font-size:23px}.panel{padding:12px}.audience-list{grid-template-columns:1fr}
+ .screen{padding:9px 10px 22px}.glass{padding:25px 17px}.btn{font-size:17px;padding:12px 22px}.btn.big{font-size:22px;padding:15px 32px}
+}
+
+</style></head><body>
+<div id="dots"></div>
+<div id="stage">
+
+<section class="screen on" id="menu">
+<svg class="bg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<rect width="800" height="600" fill="var(--wall)"/><rect y="450" width="800" height="150" fill="var(--floor)"/>
+<rect x="70" y="70" width="210" height="170" rx="14" fill="#cfeaf7" stroke="var(--card)" stroke-width="8"/>
+<path d="M175 70V240M70 155H280" stroke="var(--card)" stroke-width="6"/><circle cx="225" cy="115" r="22" fill="#fbe6a2"/>
+<rect x="500" y="170" width="250" height="12" rx="6" fill="#d8b49a"/><rect x="500" y="300" width="250" height="12" rx="6" fill="#d8b49a"/>
+<path d="M530 170l14-40v-24h16v24l14 40z" fill="#9fd8c4"/><path d="M610 170l10-30h24l10 30z" fill="#ffd1b3"/><rect x="684" y="110" width="16" height="16" fill="#d9d0f2"/><circle cx="692" cy="146" r="24" fill="#d9d0f2"/>
+<rect x="520" y="256" width="46" height="44" rx="8" fill="#fbe6a2"/><rect x="580" y="246" width="46" height="54" rx="8" fill="#9bd68f"/><rect x="640" y="262" width="46" height="38" rx="8" fill="#d8b49a"/>
+<rect y="440" width="800" height="26" fill="#bfa58f"/>
+<path d="M90 440v-60q0-14 14-14h36q14 0 14 14v60z" fill="#bfe2f2"/><rect x="100" y="400" width="44" height="40" fill="#9fd8c4"/>
+<path d="M640 440h80M680 440v-70q30-10 30-50" stroke="#8aa7a0" stroke-width="10" fill="none" stroke-linecap="round"/><circle cx="710" cy="316" r="14" fill="#8aa7a0"/>
+<circle cx="400" cy="420" r="20" fill="#9bd68f"/><rect x="392" y="425" width="16" height="15" fill="#d8b49a"/></svg>
+<div class="in glass"><div class="cover-kicker">🧪 FOOD INNOVATION SIMULATOR</div><h1>Food Lab Tycoon</h1><p class="sub">คิดค้นสูตรอาหาร • ทดลองเทคโนโลยี • ออกแบบแพ็กเกจ • สร้างแบรนด์ของคุณ</p><div class="cover-emojis" aria-hidden="true"><span>🥑</span><span>🧫</span><span>🥤</span><span>⚙️</span><span>🍱</span></div>
+<div class="difficulty-panel"><b>เลือกระดับความท้าทาย</b><div class="difficulty-options" role="group" aria-label="ระดับความยาก"><button type="button" class="difficulty-choice" data-difficulty="easy">🌱 เริ่มต้น</button><button type="button" class="difficulty-choice selected" data-difficulty="normal">⚙️ มาตรฐาน</button><button type="button" class="difficulty-choice" data-difficulty="hard">🔥 ผู้เชี่ยวชาญ</button></div><small id="difficultyDesc">สมดุลระหว่างเวลาและความแม่นยำ เหมาะสำหรับเล่นครั้งแรก</small></div>
+<button class="btn big" data-go="rd">เริ่มเกม <span aria-hidden="true">▶</span></button><small class="cover-note">เกมจำลองเพื่อการเรียนรู้ • บันทึกความคืบหน้าอัตโนมัติ</small></div>
+</section>
+
+<section class="screen" id="rd"><div class="in"><h2>ห้องวิจัยและพัฒนา</h2><p class="sub" id="rdRule">เลื่อนส่วนผสมให้รวมกันได้ 100%</p>
+<div class="card" style="flex-direction:row;gap:12px"><svg id="beaker" viewBox="0 0 120 150" width="104" aria-hidden="true"><defs><clipPath id="cp"><path d="M20 20V120Q20 140 40 140H80Q100 140 100 120V20Z"/></clipPath></defs><g clip-path="url(#cp)" id="layers"></g><path d="M20 20V120Q20 140 40 140H80Q100 140 100 120V20" fill="none" stroke="var(--ink)" stroke-width="5" stroke-linecap="round" opacity=".7"/></svg><div id="rows" style="flex:1;display:grid;gap:8px"></div></div>
+<div class="tot"><b id="tot">0%</b><span id="msg"></span></div>
+<div class="acts"><button class="btn soft" id="bal">ปรับสมดุลให้</button><button class="btn" id="rdNext" data-go="ext" disabled>ถัดไป</button></div></div></section>
+
+<section class="screen" id="ext"><div class="in"><h2>สกัดโปรตีน</h2><p class="sub" id="extT"></p>
+<div class="card"><svg viewBox="0 0 240 200" width="230" role="img" aria-label="Extraction machine"><path d="M70 8h100l-30 42h-40z" fill="#9bd68f" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/><circle cx="120" cy="95" r="42" fill="var(--card)" stroke="var(--ink)" stroke-width="4"/><g id="rotor"><path d="M120 62V128M87 95H153M97 72L143 118M143 72L97 118" stroke="var(--acc)" stroke-width="6" stroke-linecap="round"/></g><path d="M120 137V150" stroke="var(--ink)" stroke-width="6"/><clipPath id="jc"><rect x="92" y="150" width="56" height="45" rx="10"/></clipPath><rect id="jf" x="92" y="195" height="0" width="56" fill="#f1d27a" clip-path="url(#jc)"/><rect x="92" y="150" width="56" height="45" rx="10" fill="none" stroke="var(--ink)" stroke-width="4"/></svg>
+<div style="width:100%;display:flex;gap:10px;align-items:center"><span>มาตรสกัด</span><div class="bar"><i id="eb"></i></div><b id="ep">0%</b></div>
+<button class="btn hold" id="tap">แตะเพื่อสกัด</button></div>
+<p class="sub" id="extM">แตะตามจังหวะสบาย ๆ</p><button class="btn" id="extNext" data-go="extr" disabled>ถัดไป</button></div></section>
+
+<section class="screen" id="extr"><div class="in"><h2>อัดรีดด้วยความร้อน</h2><p class="sub" id="extrRuleText">กดค้างเพื่อเพิ่มความร้อน ปล่อยเพื่อให้เย็นลง รักษาตัวชี้ให้อยู่ในโซนสีเขียวตามเวลาที่กำหนด</p>
+<div class="card"><b id="tc">50°C</b><div style="display:flex;align-items:center;gap:6px;width:100%"><div class="gwrap"><div class="gauge"><div class="zone" id="extrZone"></div><div class="mk" id="mk"></div></div><div class="zl">โซนสีเขียว</div></div>
+<svg viewBox="0 0 220 140" style="flex:1;min-width:0" role="img" aria-label="Extruder"><defs><pattern id="fb" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#e9b98a"/><path d="M0 2h8M0 6h8" stroke="#c98d5c" stroke-width="1.6"/></pattern></defs><rect id="barrel" x="8" y="30" width="130" height="64" rx="16" stroke="var(--ink)" stroke-width="4" fill="#bfe2f2"/><path d="M22 62h100" stroke="var(--ink)" stroke-width="3" stroke-dasharray="6 8" opacity=".5"/><rect x="138" y="44" width="14" height="36" rx="3" fill="var(--ink)"/><rect id="strip" x="152" y="46" height="32" width="0" rx="6" fill="url(#fb)"/></svg></div>
+<div class="bar"><i id="xb"></i></div><button class="btn hold" id="heat">กดค้างเพื่อเพิ่มความร้อน</button></div>
+<p class="sub" id="xm">ค่อย ๆ ทำไปนะ</p><button class="btn" id="xNext" data-go="cold" disabled>ถัดไป</button></div></section>
+
+<section class="screen" id="cold"><div class="in"><h2>ห้องแช่เย็น</h2><p class="sub" id="coldRuleText">เลื่อนเทอร์โมสตัทไปที่ −18°C เพื่อแช่แข็งผลิตภัณฑ์</p>
+<div class="card"><div class="dial" id="dial"><i class="tick" id="tick"></i><span id="dv">15°C</span></div>
+<input type="range" id="th" min="-40" max="20" step="1" value="15" aria-label="เทอร์โมสตัท">
+<div style="display:flex;justify-content:space-between;width:100%;color:var(--mut);font-size:14px"><span>−40°C</span><span>เป้าหมาย −18°C</span><span>20°C</span></div><p class="sub" id="hint">เลื่อนไปทางเป้าหมาย</p>
+<div class="ov" id="ov"><span>❄️</span>แช่เย็นเสร็จแล้ว</div></div>
+<button class="btn" id="cNext" data-go="mkt" disabled>ถัดไป</button></div></section>
+
+    <section class="screen" id="hpp"><div class="in wide">
+      <div class="section-head"><h2>การฆ่าเชื้อและยืดอายุอาหาร</h2><span class="tag">ภารกิจที่ 5 · HPP</span></div>
+      <p class="sub">High-Pressure Processing (HPP) คือการใช้แรงดันสูงที่ถ่ายทอดผ่านน้ำเพื่อช่วยลดจุลินทรีย์ โดยไม่ต้องอาศัยความร้อนสูงแบบการพาสเจอไรซ์ทั่วไป ช่วยคงสี กลิ่น และรสชาติได้ดีในอาหารบางชนิด และอาจลดความจำเป็นในการใช้สารกันบูด</p>
+      <div class="grid2">
+        <div class="panel" style="display:grid;gap:10px;align-content:start">
+          <div class="machine">
+            <svg viewBox="0 0 560 270" role="img" aria-label="ภาพจำลองเครื่อง High Pressure Processing">
+              <defs><linearGradient id="hppMetal" x1="0" x2="1"><stop stop-color="#82a5a0"/><stop offset=".5" stop-color="#e1eeeb"/><stop offset="1" stop-color="#789692"/></linearGradient><linearGradient id="hppFillGrad" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#8fd5e8" stop-opacity=".5"/><stop offset="1" stop-color="#398cb5" stop-opacity=".8"/></linearGradient></defs>
+              <rect x="28" y="58" width="504" height="174" rx="34" fill="url(#hppMetal)" stroke="#416861" stroke-width="8"/>
+              <rect x="70" y="89" width="420" height="112" rx="26" fill="#d8f3f0" stroke="#527f78" stroke-width="7"/>
+              <rect id="hppWater" x="78" y="97" width="404" height="96" rx="20" fill="url(#hppFillGrad)"/>
+              <g id="hppProduct" transform="translate(0 0)"><rect x="210" y="124" width="140" height="52" rx="17" fill="#f7d98c" stroke="#9c6d31" stroke-width="4"/><rect x="222" y="133" width="116" height="34" rx="10" fill="#fff4d7"/><text x="280" y="155" text-anchor="middle" fill="#4b6b48" font-size="15" font-weight="bold">FOOD PACK</text></g>
+              <circle cx="500" cy="48" r="25" fill="#fff" stroke="#416861" stroke-width="5"/><path d="M500 48l10-12" stroke="#d45e4b" stroke-width="4" stroke-linecap="round"/><text x="500" y="16" text-anchor="middle" font-size="13" fill="#315b52">MPa</text>
+              <rect x="50" y="230" width="460" height="16" rx="8" fill="#537a74"/><rect x="90" y="16" width="120" height="44" rx="12" fill="#467a70"/><text x="150" y="44" text-anchor="middle" fill="white" font-size="16" font-weight="bold">HPP TANK</text>
+              <path d="M150 60v28M410 60v28" stroke="#416861" stroke-width="8" stroke-linecap="round"/><circle cx="150" cy="80" r="8" fill="#f4c86f"/><circle cx="410" cy="80" r="8" fill="#f4c86f"/>
+            </svg>
+          </div>
+          <div class="pressure-bar"><i id="hppBar"></i></div>
+          <div class="scoreline"><span>แรงดันจำลอง <b id="hppPressure">0 MPa</b></span><span>เวลาคงแรงดัน <b id="hppTime">0 วินาที</b></span></div>
+          <label class="field">ตั้งค่าแรงดันในถัง (MPa)<input type="range" id="hppSlider" min="0" max="600" step="5" value="0" disabled></label>
+          <div class="scoreline"><span id="hppTargetHint">เป้าหมาย 500 MPa</span><span id="hppTolerance">ช่วงยอมรับ ±20 MPa</span></div>
+          <div class="pressure-bar"><i id="hppHoldBar"></i></div>
+          <div class="acts"><button class="btn small-btn" id="hppHoldBtn" disabled>เริ่มคงแรงดัน</button><button class="btn soft small-btn" id="hppReleaseBtn" hidden disabled>ปล่อยแรงดันและนำอาหารออก</button></div>
+          <p id="hppStatus" class="feedback" aria-live="polite">กดเริ่มทดลอง เพื่อนำผลิตภัณฑ์เข้าสู่เครื่อง</p>
+          <div class="acts"><button class="btn" id="hppStart">เริ่มทดลอง HPP</button><button class="btn soft" id="hppReset">รีเซ็ตการทดลอง</button></div>
+        </div>
+        <div class="panel" style="text-align:left;display:grid;gap:8px;align-content:start">
+          <h3 style="margin:0">หลักการทำงาน</h3>
+          <div class="step-pills"><span id="hppStep1" class="active">1. บรรจุอาหาร</span><span id="hppStep2">2. เพิ่มแรงดัน</span><span id="hppStep3">3. คงแรงดัน</span><span id="hppStep4">4. ลดแรงดัน/นำออก</span></div>
+          <p class="small">1) ปิดผนึกอาหารในบรรจุภัณฑ์ที่ยืดหยุ่นและเหมาะกับ HPP จากนั้นใส่ลงในภาชนะรับแรงดัน</p>
+          <p class="small">2) เติมน้ำเป็นตัวกลางถ่ายทอดแรงดัน แล้วเพิ่มแรงดันอย่างสม่ำเสมอรอบผลิตภัณฑ์</p>
+          <p class="small">3) คงแรงดันตามเวลาและเงื่อนไขที่ผ่านการตรวจสอบ ก่อนปล่อยแรงดันออก</p>
+          <p class="small">4) นำผลิตภัณฑ์ออก ตรวจสอบบรรจุภัณฑ์ และเก็บรักษาตามข้อกำหนดของอาหารนั้น</p>
+          <div class="note-box">ตัวอย่างในเกมใช้ 500 MPa เพื่อการเรียนรู้เท่านั้น กระบวนการเชิงพาณิชย์มักอยู่ราว 400–600 MPa แต่ต้องกำหนดและ Validate ตามสูตรอาหาร ค่า pH จุลินทรีย์เป้าหมาย เวลา และอุปกรณ์จริง</div>
+        </div>
+      </div>
+      <div class="panel small" style="text-align:left"><b>สรุปความรู้</b><p style="margin:5px 0">HPP ช่วยลดจุลินทรีย์ก่อโรคและจุลินทรีย์ทำให้อาหารเสียบางกลุ่ม จึงช่วยยืดอายุอาหารแช่เย็นและคงลักษณะสดได้ในหลายผลิตภัณฑ์ แต่สปอร์ของแบคทีเรียบางชนิดทนแรงดันได้ การทำ HPP จึงไม่ได้แปลว่าอาหารปลอดเชื้อทั้งหมด และยังต้องควบคุมอุณหภูมิ/การแช่เย็นตามความเหมาะสม</p><p class="muted" style="margin:0">แหล่งอ่านเพิ่มเติม: <a href="https://doi.org/10.2903/j.efsa.2022.7128" target="_blank" rel="noopener">EFSA Journal (2022)</a> · <a href="https://ext.vt.edu/content/pubs_ext_vt_edu/en/FST/FST-323/FST-323.html" target="_blank" rel="noopener">Virginia Tech Extension</a></p></div>
+      <button class="btn" id="hppNext" disabled>ไปทำเกมทายอุณหภูมิ →</button>
+    </div></section>
+
+    <section class="screen" id="temp"><div class="in" style="max-width:760px">
+      <div class="section-head"><h2>เกมทายอุณหภูมิ</h2><span class="tag">ภารกิจที่ 6 · Temperature Quiz</span></div>
+      <p class="sub">อ่านสถานการณ์ แล้วกรอกอุณหภูมิเป้าหมายเป็นองศาเซลเซียส (°C)</p>
+      <div class="panel" style="display:grid;gap:12px">
+        <div class="stats"><div><b id="tempScore">0</b><small>คะแนนสะสม</small></div><div><b id="tempAttempts">0</b><small>จำนวนครั้งที่ตอบ</small></div><div><b id="tempWins">0</b><small>โจทย์ที่ตอบถูกทั้งหมด</small></div></div>
+        <div class="scoreline"><span>รอบคำถาม <b id="tempRound">1 / 5</b></span><span>เวลาที่เหลือ <b id="tempTimer">—</b></span><span>โอกาส <b id="tempTries">—</b></span></div><div class="bar"><i id="tempTimerBar"></i></div>
+        <div class="machine" style="padding:18px"><div style="font-size:52px">🌡️</div><b id="tempQuestion" style="font-size:19px;color:#234b43">กำลังเตรียมโจทย์…</b><p id="tempContext" class="small" style="color:#315b52;margin:5px 0 0"></p></div>
+        <label class="field">คำตอบของคุณ (°C)<input type="number" id="tempAnswer" inputmode="decimal" step="1" placeholder="เช่น -18" /></label>
+        <div class="acts"><button class="btn" id="tempSubmit">ส่งคำตอบ</button><button class="btn soft" id="tempAdvance" disabled>ข้อต่อไป →</button><button class="btn soft" id="tempNew">เริ่มชุดคำถามใหม่</button></div>
+        <p id="tempFeedback" class="feedback" aria-live="polite">ตอบให้ถูกอย่างน้อย 4 จาก 5 ข้อ ภายในเวลาที่กำหนด</p>
+      </div>
+      <div class="note-box"><b>จำให้แม่น: อุณหภูมิไม่ใช่แรงดัน</b><br>HPP ใช้หน่วยแรงดันเป็น MPa เช่น 500 MPa ส่วน °C ใช้บอกอุณหภูมิ เช่น การเก็บอาหารแช่เย็นหรือแช่แข็ง ทั้งสองค่าเป็นคนละพารามิเตอร์ของกระบวนการ</div>
+      <div class="panel small" style="text-align:left"><b>เกร็ดความรู้</b><ul class="info-list"><li>อาหารแช่เย็นควรควบคุมอุณหภูมิอย่างเหมาะสม โดยตัวอย่างโจทย์นี้ใช้ 4°C</li><li>การเก็บรักษาอาหารแช่แข็งโดยทั่วไปใช้ −18°C หรือต่ำกว่า</li><li>การพาสเจอไรซ์นมแบบ HTST ใช้ตัวอย่าง 72°C ประมาณ 15 วินาที ทั้งนี้เงื่อนไขจริงขึ้นกับมาตรฐานและผลิตภัณฑ์</li></ul></div>
+      <button class="btn" id="tempNext" disabled>ไปออกแบบบรรจุภัณฑ์ →</button>
+    </div></section>
+
+    <section class="screen" id="mkt"><div class="in wide">
+      <div class="section-head"><h2>ออกแบบบรรจุภัณฑ์</h2><span class="tag">ภารกิจที่ 7 · Packaging Design</span></div>
+      <p class="sub">เลือกชนิด สี และขนาด แล้วดูตัวอย่างสินค้าก่อนยืนยัน</p>
+      <div class="grid2">
+        <div class="panel" style="display:grid;gap:10px;align-content:start;text-align:left">
+          <b>1. เลือกประเภทบรรจุภัณฑ์</b><div id="packChoices" class="grid2"></div>
+          <div class="grid2"><label class="field">ขนาดบรรจุภัณฑ์<select id="packSize"><option value="S">เล็ก · 100 กรัม</option><option value="M" selected>กลาง · 250 กรัม</option><option value="L">ใหญ่ · 500 กรัม</option></select></label><div class="field"><span>สีบรรจุภัณฑ์</span><div class="swatches" id="packColors"><button class="swatch selected" data-color="#b9dfbd" style="background:#b9dfbd" aria-label="เขียวมิ้นต์"></button><button class="swatch" data-color="#f8d78c" style="background:#f8d78c" aria-label="เหลืองครีม"></button><button class="swatch" data-color="#f4b4a8" style="background:#f4b4a8" aria-label="ชมพูพีช"></button><button class="swatch" data-color="#b9d9ef" style="background:#b9d9ef" aria-label="ฟ้า"></button><button class="swatch" data-color="#d5c6ee" style="background:#d5c6ee" aria-label="ม่วงลาเวนเดอร์"></button><button class="swatch" data-color="#e9e4d8" style="background:#e9e4d8" aria-label="ขาวงาช้าง"></button></div></div></div>
+          <div id="packFacts" class="small muted" aria-live="polite"></div>
+          <div class="note-box">ต้นทุนที่แสดงเป็นตัวเลขจำลองเพื่อการเล่นเกม ไม่ใช่ราคาจัดซื้อจริง ก่อนใช้กับ HPP ต้องเลือกวัสดุที่ผู้ผลิตรับรองและทดสอบความแข็งแรง/รอยซีลกับกระบวนการจริง</div>
+        </div>
+        <div class="panel" style="display:grid;gap:12px;justify-items:center;align-content:start">
+          <b>2. ตัวอย่างผลิตภัณฑ์ของคุณ</b><div id="packPreview" class="package-preview" style="background:#b9dfbd"><span id="packEmoji" class="pack-emoji">📦</span><div class="label-sticker"><b id="packPreviewName">โปรตีนพืชสูตรพิเศษ</b><small id="packPreviewMeta">FOOD LAB · 250 g</small></div></div>
+          <div class="stats"><div><b id="packCost">฿0</b><small>ต้นทุนแพ็กเกจ/ชิ้น</small></div><div><b id="packSizeText">250 g</b><small>ปริมาณสุทธิ</small></div><div><b id="packMaterial">—</b><small>ประเภท</small></div></div>
+          <button class="btn" id="packConfirm" disabled>ยืนยันการออกแบบ →</button>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="screen" id="brand"><div class="in wide">
+      <div class="section-head"><h2>สร้างแบรนด์และผลิตภัณฑ์</h2><span class="tag">ภารกิจที่ 8 · Branding</span></div>
+      <p class="sub">ตั้งชื่อสินค้า ออกแบบฉลาก และเลือกกลุ่มลูกค้าที่ต้องการสื่อสารด้วยได้มากกว่าหนึ่งกลุ่ม</p>
+      <div class="grid2">
+        <div class="panel" style="display:grid;gap:11px;align-content:start">
+          <label class="field">ชื่อแบรนด์<input id="brandName" type="text" maxlength="28" placeholder="เช่น Green Bite" autocomplete="off"></label>
+          <label class="field">ชื่อผลิตภัณฑ์<input id="productName" type="text" maxlength="32" placeholder="เช่น โปรตีนพืชพร้อมทาน" autocomplete="off"></label>
+          <label class="field">รายละเอียดสินค้า<textarea id="productDesc" maxlength="150" placeholder="เล่าจุดเด่น รสชาติ หรือวิธีรับประทาน (ไม่บังคับ)"></textarea></label>
+          <b>เลือกกลุ่มผู้บริโภคเป้าหมาย (เลือกได้หลายข้อ)</b>
+          <div class="audience-list">
+            <label class="audience"><input type="checkbox" name="audience" value="health"><span><b>🥑 สายรักสุขภาพ</b><br><span class="muted">สนใจน้ำตาลต่ำ ไขมันต่ำ และข้อมูลโภชนาการ</span></span></label>
+            <label class="audience"><input type="checkbox" name="audience" value="vegan"><span><b>🌱 สายวีแกน</b><br><span class="muted">ต้องไม่มีส่วนผสมจากสัตว์และควรระบุส่วนผสมชัดเจน</span></span></label>
+            <label class="audience"><input type="checkbox" name="audience" value="senior"><span><b>👵 ผู้สูงอายุ</b><br><span class="muted">เปิดง่าย รับประทานง่าย ตัวอักษรอ่านชัด</span></span></label>
+            <label class="audience"><input type="checkbox" name="audience" value="general"><span><b>🛒 ผู้บริโภคทั่วไป</b><br><span class="muted">เน้นราคา รสชาติ และความสะดวก</span></span></label>
+          </div>
+          <p id="brandFeedback" class="feedback" aria-live="polite"></p>
+          <button class="btn" id="brandNext" disabled>ไปหน้าร้านค้าออนไลน์ →</button>
+        </div>
+        <div class="panel" style="display:grid;gap:12px;justify-items:center;align-content:start">
+          <b>ตัวอย่างฉลากสินค้า</b><div id="brandPreview" class="package-preview" style="background:#b9dfbd"><span id="brandEmoji" class="pack-emoji">📦</span><div class="label-sticker"><b id="brandPreviewProduct">ชื่อผลิตภัณฑ์</b><small id="brandPreviewBrand">ชื่อแบรนด์ · 250 g</small></div></div>
+          <p class="small muted">สูตรเดิมของคุณใช้วัตถุดิบจากพืช ได้แก่ ถั่วเหลือง ถั่วลันเตา เห็ด และสาหร่าย แต่ควรตรวจสอบสารก่อภูมิแพ้และการปนเปื้อนข้ามก่อนกล่าวอ้างว่าเป็นวีแกน</p>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="screen" id="shop"><div class="in wide">
+      <div class="section-head"><h2>ร้านค้าออนไลน์ · วางจำหน่าย</h2><span class="tag">ภารกิจที่ 9 · Business Tycoon</span></div>
+      <p class="sub">กำหนดราคาขาย แล้วเปิดร้านเพื่อจำลองยอดขาย รายได้ กำไร และรีวิวจากลูกค้า</p>
+      <div class="grid2">
+        <div class="panel" style="display:grid;gap:12px;align-content:start">
+          <div class="store-product"><div id="shopPreview" class="package-preview" style="background:#b9dfbd"><span id="shopEmoji" class="pack-emoji">📦</span><div class="label-sticker"><b id="shopPreviewProduct">ชื่อผลิตภัณฑ์</b><small id="shopPreviewBrand">ชื่อแบรนด์ · 250 g</small></div></div><div class="store-details"><span class="tag">สินค้าใหม่ · พร้อมขาย</span><h3 id="shopProductTitle" style="margin:0">ชื่อสินค้า</h3><b id="shopBrandTitle">แบรนด์ของคุณ</b><p id="shopDescription" class="small muted" style="margin:0">รายละเอียดสินค้า</p><div class="price" id="shopShownPrice">฿0</div></div></div>
+          <label class="field">ราคาขายต่อชิ้น (บาท)<input id="salePrice" type="number" min="1" max="100000" step="1" inputmode="numeric"></label>
+          <div class="stats"><div class="metric"><b id="unitCost">฿0</b><small>ต้นทุน/ชิ้น</small></div><div class="metric"><b id="unitMargin">฿0</b><small>กำไรขั้นต้น/ชิ้น</small></div><div class="metric"><b id="saleAudience">0</b><small>กลุ่มเป้าหมาย</small></div></div>
+          <p id="shopPriceHint" class="small muted"></p>
+          <button class="btn" id="listProduct">🚀 วางจำหน่ายสินค้า</button>
+        </div>
+        <div class="panel" style="display:grid;gap:10px;align-content:start">
+          <h3 style="margin:0">รายงานยอดขายจำลอง</h3>
+          <div id="shopReport" class="small muted">สินค้าของคุณยังไม่เปิดขาย เมื่อกดวางจำหน่าย ระบบจะจำลองลูกค้าและคำนวณผลประกอบการ</div>
+          <div id="shopMetrics" class="grid2" hidden>
+            <div class="metric"><b id="soldUnits">0</b><small>จำนวนชิ้นที่ขายได้</small></div><div class="metric"><b id="buyerCount">0</b><small>จำนวนลูกค้าที่ซื้อ</small></div><div class="metric"><b id="revenue">฿0</b><small>รายได้รวม</small></div><div class="metric"><b id="totalCost">฿0</b><small>ต้นทุนรวม</small></div><div class="metric"><b id="profit">฿0</b><small>กำไร/ขาดทุนจำลอง</small></div>
+          </div>
+          <div id="reviewArea" hidden><b>เสียงจากลูกค้า</b><div id="reviews" style="display:grid;gap:7px;margin-top:8px"></div><p class="small"><b>คะแนนความพึงพอใจเฉลี่ย:</b> <span id="avgRating">—</span> · <b>ผู้รีวิว:</b> <span id="reviewCount">0</span> คน</p></div>
+          <button class="btn" id="shopReportNext" hidden>ดูสรุปผลประกอบการ →</button>
+        </div>
+      </div>
+    </div></section>
+
+
+
+<section class="screen" id="res"><div class="in wide"><h2>รายงานผลประกอบการ</h2><p class="sub">คุณเปลี่ยนไอเดียในห้องแล็บให้กลายเป็นผลิตภัณฑ์พร้อมจำหน่ายแล้ว</p>
+    <div id="rp"></div><div class="panel"><p id="story" style="margin:0 0 12px"></p><div class="grid3" id="stats"></div></div>
+    <div class="panel" style="width:100%;text-align:left"><b>คะแนนภารกิจ Food Lab Tycoon</b><div class="tot"><b id="finalScore">0</b><span>คะแนนสะสม</span></div><div class="pressure-bar"><i id="finalBar"></i></div><p class="small muted" style="margin:7px 0 0">คะแนนได้จากการผ่านขั้นตอนทดลองและสร้างธุรกิจอาหาร</p></div>
+    <div class="acts"><button class="btn" id="playAgain">เล่นอีกครั้ง</button><button class="btn soft" id="clearSave">ล้างข้อมูลบันทึก</button></div></div></section>
+</div>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const S={score:0,awarded:{},difficulty:'normal'},order=['menu','rd','ext','extr','cold','hpp','temp','mkt','brand','shop','res'];
+const DIFFICULTY={
+ easy:{label:'เริ่มต้น',rdTypes:2,extStep:10,extMinGap:120,extMaxGap:1100,extBonus:0,extrLow:42,extrHigh:76,extrNeed:4,extrDecay:0,coldTol:1,coldHold:800,hppTol:35,hppHold:3,tempTime:25,tempTries:3,tempTol:2,tempPass:4,tempReward:10},
+ normal:{label:'มาตรฐาน',rdTypes:3,extStep:7,extMinGap:180,extMaxGap:850,extBonus:2,extrLow:48,extrHigh:69,extrNeed:5,extrDecay:1.4,coldTol:1,coldHold:1300,hppTol:20,hppHold:4,tempTime:18,tempTries:2,tempTol:1,tempPass:4,tempReward:15},
+ hard:{label:'ผู้เชี่ยวชาญ',rdTypes:4,extStep:5,extMinGap:220,extMaxGap:700,extBonus:3,extrLow:53,extrHigh:65,extrNeed:6,extrDecay:2.5,coldTol:0,coldHold:1900,hppTol:10,hppHold:5,tempTime:12,tempTries:1,tempTol:0,tempPass:4,tempReward:25}
+};
+const level=()=>DIFFICULTY[S.difficulty]||DIFFICULTY.normal;
+function applyDifficultyUI(){const d=S.difficulty||'normal';$$('[data-difficulty]').forEach(b=>b.classList.toggle('selected',b.dataset.difficulty===d));const desc={easy:'ผ่อนปรนเวลาและช่วงควบคุม เหมาะสำหรับเรียนรู้ระบบครั้งแรก',normal:'สมดุลระหว่างเวลา ความแม่นยำ และจำนวนโอกาส',hard:'ช่วงควบคุมแคบ เวลาน้อย และต้องตอบแม่นยำ'};$('#difficultyDesc').textContent=desc[d]||desc.normal;}
+let raf,ct,vals=[20,20,20,20],was=0,ep=0,ang=0,t=30,v=0,prog=0,hold=0,last=0,cv=15,done=0,mstep=0,tapLast=0,tapCombo=0;
+const ING=[['ถั่วเหลือง','#f1d27a'],['ถั่วลันเตา','#9bd68f'],['เห็ด','#d8b49a'],['สาหร่าย','#5fc7b4']];
+const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML};
+$('#dots').innerHTML='<i class="dot"></i>'.repeat(10);
+function burst(el,list,n=14){const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;for(let i=0;i<n;i++){const s=document.createElement('span'),a=Math.random()*6.28,d=50+Math.random()*100;s.className='sp';s.textContent=list[i%list.length];s.style.cssText=`left:${cx}px;top:${cy}px;--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d-30}px`;document.body.append(s);setTimeout(()=>s.remove(),1200)}}
+const H={rd:initRD,ext:initExt,extr:initExtr,cold:initCold,hpp:initHPP,temp:initTemp,mkt:initPack,brand:initBrand,shop:initShop,res:initRes};
+function award(key,points){S.awarded=S.awarded||{};if(!S.awarded[key]){S.awarded[key]=true;S.score=(S.score||0)+points;burst($('#dots'),['⭐','✨'],5)}}
+function saveGame(){try{const data={cur:S.cur||'menu',S,vals};localStorage.setItem('foodLabTycoonSaveV1',JSON.stringify(data))}catch(e){console.warn('ไม่สามารถบันทึกความคืบหน้าได้',e)}}
+function go(id){cancelAnimationFrame(raf);clearTimeout(ct);if(S.cur==='hpp'&&id!=='hpp')stopHPP();if(S.cur==='temp'&&id!=='temp')stopTempTimer();const prev=S.cur;if(prev&&prev!==id){if(prev==='rd'&&vals.reduce((a,b)=>a+b,0)===100&&vals.filter(Boolean).length>=level().rdTypes)award('rd',10);if(prev==='ext'&&ep>=100)award('ext',10);if(prev==='extr'&&prog>=level().extrNeed)award('extr',10);if(prev==='cold'&&done)award('cold',10);if(prev==='hpp'&&S.hppDone)award('hpp',10);if(prev==='temp'&&S.tempCompleted)award('temp',level().tempReward);if(prev==='mkt'&&S.packConfirmed)award('pack',10);if(prev==='brand'&&S.brandConfirmed)award('brand',10);if(prev==='shop'&&S.listed)award('shop',20)}const i=order.indexOf(id);$$('.screen').forEach(e=>e.classList.toggle('on',e.id===id));$$('.dot').forEach((d,k)=>d.classList.toggle('on',k<i));$('#dots').style.visibility=i?'visible':'hidden';S.cur=id;H[id]&&H[id]();saveGame()}
+$$('[data-go]').forEach(b=>b.onclick=()=>{if(b.dataset.go==='menu')resetGame();else go(b.dataset.go)});
+$$('[data-difficulty]').forEach(b=>b.onclick=()=>{S.difficulty=b.dataset.difficulty;applyDifficultyUI();saveGame();burst(b,['⚡','⭐'],5)});
+function resetGame(){try{localStorage.removeItem('foodLabTycoonSaveV1')}catch(e){}Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,{score:0,awarded:{},difficulty:'normal'});vals=[20,20,20,20];ep=0;prog=0;done=0;applyDifficultyUI();go('menu')}
+document.addEventListener('input',saveGame);document.addEventListener('change',saveGame);
+
+/* R&D */
+$('#layers').innerHTML=ING.map(a=>`<rect x="20" width="80" fill="${a[1]}"/>`).join('');
+$('#rows').innerHTML=ING.map(a=>`<label class="row" style="--c:${a[1]}"><i class="sw"></i><span>${a[0]}</span><b>0%</b><input type="range" min="0" max="100" step="5" aria-label="${a[0]}"></label>`).join('');
+$$('#rows input').forEach((e,i)=>e.oninput=()=>{vals[i]=+e.value;upd()});
+function initRD(){if(!S.rdStarted){vals=[20,20,20,20];S.rdStarted=true}was=0;$('#rdRule').textContent=`ปรับให้ครบ 100% และใช้วัตถุดิบอย่างน้อย ${level().rdTypes} ชนิด · ระดับ ${level().label}`;sync()}
+function sync(){$$('#rows input').forEach((e,i)=>e.value=vals[i]);upd()}
+function upd(){const T=vals.reduce((a,b)=>a+b,0),sc=T>100?100/T:1,r=$$('#layers rect');let y=140;
+vals.forEach((n,i)=>{const h=n*1.2*sc;y-=h;r[i].setAttribute('y',y);r[i].setAttribute('height',h);$$('.row b')[i].textContent=n+'%'});
+const d=100-T,ok=!d,types=vals.filter(Boolean).length,enough=types>=level().rdTypes;$('#tot').textContent=T+'%';$('#msg').textContent=!ok?(d>0?`เพิ่มอีก ${d}%`:`ลดลง ${-d}%`):!enough?`สูตรครบ 100% แล้ว เพิ่มชนิดวัตถุดิบอีก ${level().rdTypes-types} ชนิด`:'สูตรลงตัวและหลากหลายแล้ว!';
+$('#rdNext').disabled=!ok||!enough;$('#beaker').classList.toggle('glow',ok&&enough);
+if(ok&&!was)burst($('#beaker'),['✨','🌟','💚']);was=ok;
+S.diverse=vals.filter(Boolean).length>=3;S.blend=vals.map((n,i)=>[n,ING[i][0]]).filter(a=>a[0]).sort((a,b)=>b[0]-a[0]).slice(0,2).map(a=>a[1]).join(' + ')||'พืช'}
+$('#bal').onclick=()=>{const T=vals.reduce((a,b)=>a+b,0);if(!T)vals=[25,25,25,25];else{vals=vals.map(n=>Math.round(n*100/T/5)*5);vals[vals.indexOf(Math.max(...vals))]+=100-vals.reduce((a,b)=>a+b,0)}sync()};
+
+/* Extraction */
+function initExt(){if(!S.extStarted){ep=0;S.extStarted=true}else ep=S.extProgress||0;tapLast=0;tapCombo=0;ang=ep/level().extStep*45;$('#extT').textContent=`สูตร ${S.blend} พร้อมสกัด · ระดับ ${level().label} — แตะตามจังหวะ อย่ากดถี่เกินไป`;$('#extM').textContent=ep>=100?'สกัดเสร็จแล้ว ได้โปรตีนบริสุทธิ์!':'สร้างคอมโบด้วยการแตะห่างกันตามจังหวะที่กำหนด';$('#tap').disabled=ep>=100;$('#extNext').disabled=ep<100;$('#rotor').style.transform=`rotate(${ang}deg)`;updExt()}
+function updExt(){$('#eb').style.width=ep+'%';$('#ep').textContent=ep+'%';const h=45*ep/100;$('#jf').setAttribute('y',195-h);$('#jf').setAttribute('height',h)}
+$('#tap').onclick=()=>{if(ep>=100)return;const now=performance.now(),gap=tapLast?now-tapLast:0;if(gap&&gap<level().extMinGap){$('#extM').textContent='เร็วเกินไป! เว้นจังหวะอีกนิดก่อนแตะ';tapCombo=0;tapLast=now;return;}if(gap>0&&gap<=level().extMaxGap)tapCombo++;else tapCombo=1;tapLast=now;const add=level().extStep+(tapCombo>=3?level().extBonus:0);ep=Math.min(100,ep+add);S.extProgress=ep;ang+=45;$('#rotor').style.transform=`rotate(${ang}deg)`;updExt();$('#extM').textContent=`+${add}% · คอมโบ ${tapCombo}x · แตะต่อเนื่องให้ครบ 100%`;saveGame();burst($('#jf'),['💧'],2);
+if(ep>=100){$('#extM').textContent='สกัดเสร็จแล้ว! คอมโบสุดท้าย x'+tapCombo;$('#tap').disabled=true;$('#extNext').disabled=false;burst($('#jf'),['✨','💧'],10)}};
+
+/* Extrusion */
+function initExtr(){const need=level().extrNeed;t=Number.isFinite(S.extrTemp)?S.extrTemp:30;v=0;prog=Math.min(need,S.extrProgress||0);hold=0;last=0;$('#extrRuleText').textContent=`กดค้างเพื่อเพิ่มความร้อน ปล่อยเพื่อให้เย็นลง คุมให้อยู่ราว ${Math.round(20+level().extrLow*1.6)}–${Math.round(20+level().extrHigh*1.6)}°C รวม ${need} วินาที · หลุดโซนแล้วความคืบหน้าจะลดลง`;$('#extrZone').style.bottom=level().extrLow+'%';$('#extrZone').style.height=(level().extrHigh-level().extrLow)+'%';$('#xm').textContent=prog>=need?'เนื้อสัมผัสสมบูรณ์แบบ เส้นใยคล้ายเนื้อเกิดขึ้นแล้ว!':'ค่อย ๆ คุมอุณหภูมิให้อยู่ในช่วงสีเขียว';$('#xNext').disabled=prog<need;$('#strip').setAttribute('width',64*prog/need);$('#xb').style.width=prog/need*100+'%';if(prog>=need)return;raf=requestAnimationFrame(loop)}
+function loop(ts){const dt=Math.min(.05,(ts-(last||ts))/1000);last=ts;
+v+=((hold?20:-20)-v)*Math.min(1,3*dt);t=Math.max(0,Math.min(100,t+v*dt));const rule=level(),need=rule.extrNeed,inZone=t>=rule.extrLow&&t<=rule.extrHigh;
+if(inZone)prog=Math.min(need,prog+dt);else if(rule.extrDecay>0)prog=Math.max(0,prog-dt*rule.extrDecay);const sec=Math.floor(prog);if(sec!==(S.extrSavedSecond||0)){S.extrSavedSecond=sec;S.extrProgress=prog;S.extrTemp=t;saveGame()}
+$('#mk').style.bottom=`calc(${t}% - 6px)`;$('#tc').textContent=Math.round(20+t*1.6)+'°C';$('#xb').style.width=prog/need*100+'%';
+$('#strip').setAttribute('width',64*prog/need);$('#barrel').setAttribute('fill',`hsl(${190-1.7*t},75%,76%)`);if(prog<need)$('#xm').textContent=`${inZone?'✅ อยู่ในโซนควบคุม':'⚠️ อุณหภูมิหลุดโซน — ความคืบหน้าลดลง'} · ${prog.toFixed(1)} / ${need} วินาที`;
+if(prog>=need){S.extrProgress=need;S.extrTemp=t;saveGame();$('#xm').textContent='ผ่านการควบคุมอุณหภูมิแล้ว! เนื้อสัมผัสเส้นใยเกิดขึ้น';$('#xNext').disabled=false;burst($('#strip'),['✨','🔥','🌟'],12);return}
+raf=requestAnimationFrame(loop)}
+const hb=$('#heat');hb.onpointerdown=()=>hold=1;['pointerup','pointerleave','pointercancel'].forEach(e=>hb.addEventListener(e,()=>hold=0));
+addEventListener('keydown',e=>{if(S.cur==='extr'&&e.code==='Space'){hold=1;e.preventDefault()}});addEventListener('keyup',e=>{if(e.code==='Space')hold=0});
+
+/* Cold room */
+function initCold(){done=S.coldDone?1:0;cv=done?-18:15;$('#th').value=cv;$('#th').disabled=!!done;$('#ov').classList.toggle('on',!!done);$('#cNext').disabled=!done;$('#coldRuleText').textContent=`ปรับไปที่ −18°C และรักษาความแม่นยำ ±${level().coldTol}°C ต่อเนื่อง ${(level().coldHold/1000).toFixed(1)} วินาที`;dial()}
+function dial(){const h=20+(20-cv)*3.17;$('#dial').style.background=`hsl(${h},70%,82%)`;$('#dial').style.borderColor=`hsl(${h},50%,50%)`;$('#dv').textContent=cv.toString().replace('-','−')+'°C';$('#tick').style.transform=`rotate(${-105+(20-cv)/60*210}deg)`;
+const d=cv+18,tol=level().coldTol;$('#hint').textContent=Math.abs(d)<=tol?'✅ อยู่ในช่วงเป้าหมาย รักษาค่านี้ไว้…':d>10?'ต้องลดอุณหภูมิลงอีกมาก…':d>0?'ยังอุ่นเกินไป ลดลงอีกนิด…':'เย็นเกินไป ปรับขึ้นหน่อย'}
+$('#th').oninput=e=>{if(done)return;cv=+e.target.value;dial();clearTimeout(ct);if(Math.abs(cv+18)<=level().coldTol){$('#hint').textContent=`ดีมาก! อย่าขยับเป็นเวลา ${(level().coldHold/1000).toFixed(1)} วินาที`;ct=setTimeout(()=>{done=1;S.coldDone=true;$('#th').disabled=true;$('#ov').classList.add('on');$('#cNext').disabled=false;burst($('#dial'),['❄️','✨','💙'],18);saveGame()},level().coldHold)}};
+
+    /* HPP pressure-control challenge. MPa and °C are deliberately separate. */
+const HPP_STEPS=['1. บรรจุอาหาร','2. เพิ่มแรงดัน','3. คงแรงดัน','4. ลดแรงดัน/นำออก'];
+let hppTimer=null,hppPhase=0,hppValue=0,hppHoldElapsed=0;
+function hppUI(){
+  $('#hppPressure').textContent=Math.round(hppValue)+' MPa';$('#hppBar').style.width=(hppValue/600*100)+'%';$('#hppTime').textContent=hppHoldElapsed.toFixed(1)+' / '+level().hppHold+' วินาที';
+  HPP_STEPS.forEach((_,i)=>$('#hppStep'+(i+1)).classList.toggle('active',i===hppPhase));
+}
+function stopHPP(){if(hppTimer){clearInterval(hppTimer);hppTimer=null}}
+function initHPP(){stopHPP();hppPhase=S.hppDone?3:0;hppValue=0;hppHoldElapsed=0;$('#hppProduct').classList.remove('inside','outside');if(S.hppDone)$('#hppProduct').classList.add('outside');$('#hppStart').disabled=false;$('#hppStart').textContent=S.hppDone?'ทดลองอีกครั้ง':'เริ่มทดลอง HPP';$('#hppNext').disabled=!S.hppDone;$('#hppSlider').value=0;$('#hppSlider').disabled=true;$('#hppHoldBtn').disabled=true;$('#hppReleaseBtn').hidden=true;$('#hppReleaseBtn').disabled=true;$('#hppHoldBar').style.width='0%';$('#hppTargetHint').textContent='เป้าหมาย 500 MPa';$('#hppTolerance').textContent='ช่วงยอมรับ ±'+level().hppTol+' MPa';$('#hppStatus').textContent=S.hppDone?'✅ ทดลองสำเร็จ! ผลิตภัณฑ์ผ่านขั้นตอนจำลอง HPP แล้ว':'กดเริ่มทดลอง เพื่อนำผลิตภัณฑ์เข้าสู่เครื่อง';hppUI()}
+function runHPP(){stopHPP();S.hppDone=false;$('#hppNext').disabled=true;$('#hppStart').disabled=true;$('#hppStatus').textContent='กำลังนำอาหารที่ปิดผนึกแล้วเข้าสู่ภาชนะรับแรงดัน…';$('#hppProduct').classList.add('inside');hppPhase=0;hppUI();let tick=0;hppTimer=setInterval(()=>{tick++;if(tick>=3){stopHPP();hppPhase=1;$('#hppSlider').disabled=false;$('#hppHoldBtn').disabled=false;$('#hppStatus').textContent='ตั้งแรงดันให้ใกล้ 500 MPa ภายในช่วงที่ยอมรับได้ แล้วกด “เริ่มคงแรงดัน”';hppUI();return;}hppUI();},400)}
+$('#hppSlider').oninput=()=>{if(hppPhase!==1)return;hppValue=Number($('#hppSlider').value);hppUI()};
+$('#hppHoldBtn').onclick=()=>{if(hppPhase!==1)return;const delta=hppValue-500,tol=level().hppTol;if(Math.abs(delta)>tol){$('#hppStatus').textContent=delta<0?`แรงดันยังต่ำไป ${Math.abs(Math.round(delta))} MPa — เพิ่มแรงดันอีก`:`แรงดันสูงเกินไป ${Math.round(delta)} MPa — ลดแรงดันลง`;return;}hppPhase=2;hppHoldElapsed=0;$('#hppSlider').disabled=true;$('#hppHoldBtn').disabled=true;$('#hppStatus').textContent='แรงดันอยู่ในช่วงเป้าหมาย กำลังจับเวลาคงแรงดัน…';hppTimer=setInterval(()=>{hppHoldElapsed=Math.min(level().hppHold,hppHoldElapsed+.1);$('#hppHoldBar').style.width=hppHoldElapsed/level().hppHold*100+'%';hppUI();if(hppHoldElapsed>=level().hppHold){stopHPP();hppPhase=3;$('#hppReleaseBtn').hidden=false;$('#hppReleaseBtn').disabled=false;$('#hppStatus').textContent='ครบเวลาแล้ว! กดปล่อยแรงดันก่อนนำผลิตภัณฑ์ออกจากเครื่อง';hppUI();}},100)};
+$('#hppReleaseBtn').onclick=()=>{if(hppPhase!==3)return;stopHPP();hppValue=0;$('#hppSlider').value=0;$('#hppProduct').classList.remove('inside');$('#hppProduct').classList.add('outside');hppUI();S.hppDone=true;$('#hppReleaseBtn').disabled=true;$('#hppStart').textContent='ทดลองอีกครั้ง';$('#hppStart').disabled=false;$('#hppNext').disabled=false;$('#hppStatus').textContent='✅ สำเร็จ! คุณควบคุมแรงดันและคงแรงดันได้ตามเวลาที่กำหนด';burst($('#hppProduct'),['💧','✨','🧪'],12);saveGame()};
+$('#hppStart').onclick=()=>{if(S.hppDone){S.hppDone=false;initHPP()}runHPP()};$('#hppReset').onclick=()=>{S.hppDone=false;initHPP()};$('#hppNext').onclick=()=>{if(S.hppDone)go('temp')};
+
+/* Five-question temperature challenge: timed, limited attempts, difficulty-based precision. */
+const TEMP_QUESTIONS=[
+ {q:'ผลิตภัณฑ์โปรตีนพืชพร้อมรับประทานผ่าน HPP และกำหนดให้เก็บแบบแช่เย็นในโจทย์นี้ ควรตั้งค่าเท่าใด?',ctx:'โจทย์ถามอุณหภูมิการเก็บรักษา ไม่ใช่แรงดัน HPP',a:4,why:'ตัวอย่างนี้ใช้ 4°C สำหรับการเก็บแบบแช่เย็น และต้องรักษาโซ่ความเย็นต่อเนื่อง'},
+ {q:'หากต้องเก็บผลิตภัณฑ์ในสภาวะแช่แข็ง ควรตั้งอุณหภูมิเป้าหมายอย่างน้อยเท่าใด?',ctx:'โจทย์ใช้เกณฑ์ตัวอย่าง −18°C หรือต่ำกว่า',a:-18,why:'การเก็บอาหารแช่แข็งโดยทั่วไปใช้ −18°C หรือต่ำกว่า'},
+ {q:'การพาสเจอไรซ์นมแบบ HTST ใช้อุณหภูมิตัวอย่างเท่าใด เมื่อคงไว้ประมาณ 15 วินาที?',ctx:'นี่คือกระบวนการใช้ความร้อน ไม่ใช่ HPP',a:72,why:'ตัวอย่าง HTST สำหรับนมคือ 72°C ประมาณ 15 วินาที โดยต้องยึดมาตรฐานของผลิตภัณฑ์จริง'},
+ {q:'สเปกในโจทย์กำหนดช่วงเก็บเย็น 0–4°C หากต้องตั้งค่ากลางของช่วงเพื่อให้มีระยะเผื่อ ควรตั้งเท่าใด?',ctx:'เป็นการคำนวณค่ากลางของช่วง 0 ถึง 4°C สำหรับกรณีศึกษานี้',a:2,why:'ค่ากลางของช่วง 0–4°C คือ 2°C แต่สเปกและข้อกำหนดของผลิตภัณฑ์จริงเป็นตัวตัดสิน'},
+ {q:'ในตัวอย่างการทดลอง HPP นี้ ผลิตภัณฑ์เริ่มต้นเข้าถังที่อุณหภูมิ 20°C ก่อนเพิ่มแรงดัน ค่าที่อ่านได้คือเท่าใด?',ctx:'HPP ใช้แรงดันเป็น MPa ส่วนอุณหภูมิเริ่มต้นในโจทย์นี้เป็น 20°C เท่านั้น ไม่ใช่ค่ามาตรฐานสากล',a:20,why:'ตามสถานการณ์จำลอง ผลิตภัณฑ์เริ่มต้นที่ 20°C และระหว่าง HPP อุณหภูมิอาจเปลี่ยนจากการอัดตัวของน้ำ'},
+ {q:'ฉลากข้อกำหนดของอาหารแช่แข็งในโจทย์นี้ระบุให้ตั้งตู้ที่ −20°C ควรตั้งค่าเท่าใด?',ctx:'ตอบตามสเปกเฉพาะของสินค้า ไม่ใช่ค่าที่ใช้กับอาหารแช่แข็งทุกชนิด',a:-20,why:'โจทย์ระบุสเปก −20°C โดยตรง ซึ่งเย็นกว่าเกณฑ์เก็บแช่แข็งตัวอย่าง −18°C'}
+];
+let tempQ=null,tempLocked=false,tempAttempts=0,tempWins=0,tempRoundIndex=0,tempRoundWins=0,tempRoundQuestions=[],tempTimeLeft=0,tempTimerInt=null,tempTryLeft=0;
+function stopTempTimer(){if(tempTimerInt){clearInterval(tempTimerInt);tempTimerInt=null}}
+function shuffleList(a){return [...a].sort(()=>Math.random()-.5)}
+function tempHUD(){$('#tempRound').textContent=Math.min(tempRoundIndex+1,5)+' / 5';$('#tempTimer').textContent=tempTimeLeft+' วินาที';$('#tempTries').textContent=tempTryLeft+' ครั้ง';$('#tempTimerBar').style.width=(tempTimeLeft/level().tempTime*100)+'%';$('#tempScore').textContent=S.score||0;$('#tempAttempts').textContent=tempAttempts;$('#tempWins').textContent=tempWins;}
+function finishTempQuestion(text){tempLocked=true;stopTempTimer();$('#tempAnswer').disabled=true;$('#tempSubmit').disabled=true;$('#tempAdvance').disabled=false;$('#tempFeedback').textContent=text;tempHUD()}
+function startTempTimer(){stopTempTimer();tempTimeLeft=level().tempTime;tempHUD();tempTimerInt=setInterval(()=>{tempTimeLeft--;tempHUD();if(tempTimeLeft<=0){finishTempQuestion('⏰ หมดเวลา! คำตอบคือ '+tempQ.a+'°C — '+tempQ.why);}},1000)}
+function showTempQuestion(){tempQ=tempRoundQuestions[tempRoundIndex];tempLocked=false;tempTryLeft=level().tempTries;$('#tempQuestion').textContent=tempQ.q;$('#tempContext').textContent=tempQ.ctx;$('#tempAnswer').value='';$('#tempAnswer').disabled=false;$('#tempSubmit').disabled=false;$('#tempAdvance').disabled=true;$('#tempFeedback').textContent=`ตอบให้แม่นภายใน ${level().tempTime} วินาที · คลาดเคลื่อนได้ไม่เกิน ±${level().tempTol}°C`;startTempTimer()}
+function endTempRound(){stopTempTimer();$('#tempAnswer').disabled=true;$('#tempSubmit').disabled=true;$('#tempAdvance').disabled=true;const passed=tempRoundWins>=level().tempPass;S.tempCompleted=passed;$('#tempQuestion').textContent=passed?'🏆 ผ่านภารกิจท้าทายอุณหภูมิ!':'ภารกิจยังไม่ผ่าน';$('#tempContext').textContent=`คุณตอบถูก ${tempRoundWins} จาก 5 ข้อ · ต้องได้อย่างน้อย ${level().tempPass} ข้อ`;$('#tempFeedback').textContent=passed?'ยอดเยี่ยม! ปลดล็อกขั้นตอนออกแบบบรรจุภัณฑ์แล้ว':'ลองทบทวนคำตอบ แล้วเริ่มชุดคำถามใหม่เพื่อทำคะแนนให้ถึงเกณฑ์';$('#tempNext').disabled=!passed;$('#tempNew').textContent=passed?'เล่นชุดคำถามอีกครั้ง':'ลองภารกิจอีกครั้ง';tempHUD();saveGame();if(passed)burst($('#tempQuestion'),['🏆','⭐','🎉'],16)}
+function initTemp(){tempAttempts=S.tempAttempts||0;tempWins=S.tempWins||0;tempRoundIndex=0;tempRoundWins=0;$('#tempNext').disabled=!S.tempCompleted;if(S.tempCompleted){stopTempTimer();$('#tempQuestion').textContent='🏆 คุณผ่านภารกิจนี้แล้ว';$('#tempContext').textContent='สามารถไปออกแบบบรรจุภัณฑ์ต่อ หรือเริ่มชุดคำถามใหม่เพื่อฝึกเพิ่มเติม';$('#tempFeedback').textContent='ทำได้ดีมาก!';$('#tempAnswer').disabled=true;$('#tempSubmit').disabled=true;$('#tempAdvance').disabled=true;tempTimeLeft=0;tempTryLeft=0;tempRoundQuestions=[];tempHUD()}else{resetTempRun()}}
+function resetTempRun(){stopTempTimer();S.tempCompleted=false;tempRoundIndex=0;tempRoundWins=0;tempRoundQuestions=shuffleList(TEMP_QUESTIONS).slice(0,5);$('#tempNew').textContent='เริ่มชุดคำถามใหม่';$('#tempNext').disabled=true;showTempQuestion();saveGame()}
+$('#tempSubmit').onclick=()=>{if(tempLocked)return;const raw=$('#tempAnswer').value;if(raw.trim()===''){ $('#tempFeedback').textContent='กรุณากรอกอุณหภูมิก่อนส่งคำตอบ';return;}const n=Number(raw);if(!Number.isFinite(n)||n< -100||n>300){$('#tempFeedback').textContent='กรุณากรอกตัวเลขระหว่าง −100 ถึง 300°C';return;}tempAttempts++;S.tempAttempts=tempAttempts;tempTryLeft--;if(Math.abs(n-tempQ.a)<=level().tempTol){tempRoundWins++;tempWins++;S.tempWins=tempWins;const points=10+Math.floor(tempTimeLeft/5);S.score=(S.score||0)+points;finishTempQuestion(`🎯 ถูกต้อง! +${points} คะแนน · ${tempQ.why}`);burst($('#tempQuestion'),['⭐','🎉','🌡️'],8)}else if(tempTryLeft>0){$('#tempFeedback').textContent=(n>tempQ.a?'มากเกินไป — ลดอุณหภูมิลง':'น้อยเกินไป — เพิ่มอุณหภูมิขึ้น')+` · เหลือ ${tempTryLeft} ครั้ง`;tempHUD()}else{finishTempQuestion(`❌ หมดโอกาสในข้อนี้ คำตอบคือ ${tempQ.a}°C · ${tempQ.why}`)}saveGame()};
+$('#tempAdvance').onclick=()=>{if(!tempLocked)return;if(tempRoundIndex<4){tempRoundIndex++;showTempQuestion();}else endTempRound()};
+$('#tempNew').onclick=()=>resetTempRun();$('#tempNext').onclick=()=>{if(S.tempCompleted)go('mkt')};
+$('#tempAnswer').addEventListener('keydown',e=>{if(e.key==='Enter')$('#tempSubmit').click()});
+
+/* Packaging design */
+const PACKS={
+ box:{name:'กล่องกระดาษ',emoji:'📦',cost:{S:4,M:6,L:9},pros:'น้ำหนักเบา พิมพ์ลายสวยงาม รีไซเคิลได้เมื่อสะอาด',cons:'ไม่กันความชื้น/ไขมันเอง ต้องมีชั้นเคลือบหรือถุงด้านใน',hpp:'ไม่เหมาะสัมผัสแรงดันโดยตรง ต้องออกแบบชั้นบรรจุด้านใน'},
+ plasticbox:{name:'กล่องพลาสติก',emoji:'🥡',cost:{S:5,M:8,L:12},pros:'คงรูป มองเห็นอาหารได้ในบางแบบ ใช้งานสะดวก',cons:'ใช้พื้นที่จัดเก็บและอาจเกิดขยะพลาสติก',hpp:'กล่องแข็งทั่วไปไม่ใช่ตัวเลือกหลักสำหรับ HPP แบบ In-pack'},
+ bottle:{name:'ขวดพลาสติก',emoji:'🧴',cost:{S:4,M:7,L:10},pros:'เหมาะกับเครื่องดื่ม พกพาง่าย ปิดฝาได้',cons:'ต้องเลือกชนิดพลาสติกและฝาที่เข้ากับอาหาร',hpp:'ขวดแข็งทั่วไปต้องตรวจสอบเป็นพิเศษ ไม่ควรสรุปว่าใช้กับ HPP ได้'},
+ glass:{name:'ขวดแก้ว',emoji:'🍾',cost:{S:9,M:13,L:18},pros:'ไม่ดูดซับกลิ่น ล้างใช้ซ้ำได้ ภาพลักษณ์พรีเมียม',cons:'แตกง่าย หนัก และมีต้นทุนขนส่งสูง',hpp:'ไม่เหมาะกับ HPP แบบบรรจุแล้วที่ใช้ภาชนะยืดหยุ่น'},
+ bag:{name:'ถุงพลาสติก',emoji:'🛍️',cost:{S:2,M:4,L:6},pros:'ต้นทุนต่ำ น้ำหนักเบา ใช้พื้นที่น้อย',cons:'ป้องกันการกระแทกได้น้อย ต้องซีลให้แน่น',hpp:'ถุงชนิดยืดหยุ่นที่ผ่านการรับรองอาจเหมาะกับ HPP'},
+ zip:{name:'ถุงซิปล็อก',emoji:'🧃',cost:{S:3,M:5,L:8},pros:'เปิดปิดซ้ำได้ ใช้งานสะดวก เห็นปริมาณสินค้า',cons:'ซิปไม่ใช่รอยซีลสำหรับกระบวนการฆ่าเชื้อ ต้องซีลส่วนบนเพิ่ม',hpp:'ต้องเป็นวัสดุและรอยซีลที่ผ่านการทดสอบ HPP'},
+ vacuum:{name:'ถุงสุญญากาศ',emoji:'🥩',cost:{S:4,M:6,L:9},pros:'ลดอากาศในถุง ช่วยลดการสัมผัสออกซิเจน',cons:'สินค้าอาจถูกบีบอัด ต้องเลือกฟิล์มที่เหมาะกับอาหาร',hpp:'ถุงยืดหยุ่นที่ซีลแน่นอาจเหมาะ แต่ต้อง Validate'},
+ foil:{name:'ถุงฟอยล์',emoji:'🍫',cost:{S:5,M:8,L:12},pros:'กันแสงและความชื้นได้ดีในหลายโครงสร้าง',cons:'แยกชั้นวัสดุ/รีไซเคิลยาก และฟอยล์บางชนิดไม่เหมาะกับ HPP',hpp:'ลามิเนตที่มีชั้นโลหะมักต้องตรวจสอบความเข้ากันได้ก่อนใช้ HPP'},
+ tray:{name:'ถาดปิดผนึก',emoji:'🍱',cost:{S:6,M:9,L:14},pros:'จัดรูปอาหารเป็นสัดส่วน วางขายสะดวก',cons:'ต้องมีฟิล์มปิดที่เหมาะสมและควบคุมรอยซีล',hpp:'ถาดกึ่งแข็งบางระบบอาจใช้ได้เมื่อออกแบบและตรวจสอบเฉพาะ'},
+ vacuumPack:{name:'บรรจุภัณฑ์สุญญากาศ',emoji:'🧊',cost:{S:5,M:7,L:11},pros:'ลดอากาศในบรรจุภัณฑ์ ช่วยจัดเก็บเป็นระเบียบ',cons:'ต้องควบคุมรอยซีลและความเหมาะสมกับรูปร่างสินค้า',hpp:'เลือกฟิล์มยืดหยุ่นสำหรับ HPP และทดสอบการซีลทุกครั้ง'}
+};
+let packColor='#b9dfbd',packId='box';
+function packCost(){return PACKS[packId].cost[$('#packSize').value]}
+function packSizeLabel(){return {S:'100 g',M:'250 g',L:'500 g'}[$('#packSize').value]}
+function renderPack(){const p=PACKS[packId],color=packColor;$('#packPreview').style.background=color;$('#packEmoji').textContent=p.emoji;$('#packPreviewName').textContent=S.productName||'โปรตีนพืชสูตรพิเศษ';$('#packPreviewMeta').textContent=(S.brandName||'FOOD LAB')+' · '+packSizeLabel();$('#packCost').textContent='฿'+packCost();$('#packSizeText').textContent=packSizeLabel();$('#packMaterial').textContent=p.name;$('#packFacts').innerHTML=`<b>ข้อดี:</b> ${esc(p.pros)}<br><b>ข้อจำกัด:</b> ${esc(p.cons)}<br><b>เมื่อใช้กับ HPP:</b> ${esc(p.hpp)}`;$('#packChoices').querySelectorAll('.choice').forEach(b=>b.classList.toggle('selected',b.dataset.pack===packId));$('#packColors').querySelectorAll('.swatch').forEach(b=>b.classList.toggle('selected',b.dataset.color===packColor));$('#packConfirm').disabled=!packId;}
+function initPack(){if(!S.packConfirmed){packId=S.packId||'box';packColor=S.packColor||'#b9dfbd';}else{packId=S.packId||'box';packColor=S.packColor||'#b9dfbd';}$('#packChoices').innerHTML=Object.entries(PACKS).map(([id,p])=>`<button class="choice" type="button" data-pack="${id}"><span class="emoji">${p.emoji}</span><span><strong>${p.name}</strong><small>เริ่ม ฿${Math.min(...Object.values(p.cost))} · ต้นทุนจำลอง</small></span></button>`).join('');$('#packChoices').querySelectorAll('[data-pack]').forEach(b=>b.onclick=()=>{packId=b.dataset.pack;S.packId=packId;renderPack();saveGame()});$('#packSize').value=S.packSize||'M';$('#packSize').onchange=()=>{S.packSize=$('#packSize').value;renderPack();saveGame()};$('#packColors').querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{packColor=b.dataset.color;S.packColor=packColor;renderPack();saveGame()});renderPack();}
+$('#packConfirm').onclick=()=>{S.packId=packId;S.packColor=packColor;S.packSize=$('#packSize').value;S.packCost=packCost();S.packName=PACKS[packId].name;S.packEmoji=PACKS[packId].emoji;S.packConfirmed=true;award('pack',10);go('brand')};
+
+/* Brand identity and audience selection */
+const AUDIENCES={health:{name:'สายรักสุขภาพ',reviews:['รสชาติดี เหมาะกับคนที่กำลังมองหาอาหารทางเลือก','อยากเห็นข้อมูลโภชนาการและปริมาณน้ำตาลชัด ๆ','ชอบแนวโปรตีนพืช ถ้ามีสูตรน้ำตาลต่ำจะดีมาก']},vegan:{name:'สายวีแกน',reviews:['ชอบที่ใช้วัตถุดิบจากพืช อยากให้ระบุส่วนผสมชัดเจน','รสชาติดีและดูเป็นมิตรกับสิ่งแวดล้อม','อยากเห็นการรับรองว่าไม่มีส่วนผสมจากสัตว์']},senior:{name:'ผู้สูงอายุ',reviews:['แพ็กเกจดูน่าใช้ ถ้าเปิดง่ายกว่านี้จะดีมาก','อยากให้ตัวอักษรบนฉลากใหญ่และอ่านชัด','เนื้อสัมผัสนุ่ม รับประทานสะดวก']},general:{name:'ผู้บริโภคทั่วไป',reviews:['ราคาคุ้มค่า รสชาติดี ซื้อซ้ำได้','สะดวกดี แพ็กเกจดูสวยงาม','อยากให้มีขนาดเล็กในราคาที่เข้าถึงง่าย']}};
+function selectedAudiences(){return [...document.querySelectorAll('input[name="audience"]:checked')].map(e=>e.value)}
+function renderBrand(){const bn=$('#brandName').value.trim(),pn=$('#productName').value.trim();$('#brandPreview').style.background=S.packColor||packColor;$('#brandEmoji').textContent=S.packEmoji||'📦';$('#brandPreviewProduct').textContent=pn||'ชื่อผลิตภัณฑ์';$('#brandPreviewBrand').textContent=(bn||'ชื่อแบรนด์')+' · '+({S:'100 g',M:'250 g',L:'500 g'}[S.packSize||'M']);const chosen=selectedAudiences();let ok=bn.length>=2&&pn.length>=2&&chosen.length>0;$('#brandNext').disabled=!ok;$('#brandFeedback').textContent=ok?'พร้อมเปิดหน้าร้านแล้ว': 'กรอกชื่อแบรนด์และชื่อผลิตภัณฑ์อย่างน้อย 2 ตัวอักษร พร้อมเลือกกลุ่มเป้าหมายอย่างน้อย 1 กลุ่ม';S.brandName=bn;S.productName=pn;S.productDesc=$('#productDesc').value.trim();S.audiences=chosen;}
+function initBrand(){ $('#brandName').value=S.brandName||'';$('#productName').value=S.productName||'';$('#productDesc').value=S.productDesc||'';document.querySelectorAll('input[name="audience"]').forEach(e=>e.checked=(S.audiences||[]).includes(e.value));['brandName','productName','productDesc'].forEach(id=>$('#'+id).oninput=()=>{renderBrand();saveGame()});document.querySelectorAll('input[name="audience"]').forEach(e=>e.onchange=()=>{renderBrand();saveGame()});renderBrand();}
+$('#brandNext').onclick=()=>{renderBrand();if($('#brandNext').disabled)return;S.brandConfirmed=true;award('brand',10);go('shop')};
+
+/* Online storefront and simulated sales */
+function money(n){return '฿'+Math.round(n).toLocaleString('th-TH')}
+function unitCost(){const base={S:18,M:30,L:48}[S.packSize||'M'];return base+(S.packCost||6)}
+function refreshShop(){const price=Number($('#salePrice').value),cost=unitCost();$('#shopPreview').style.background=S.packColor||'#b9dfbd';$('#shopEmoji').textContent=S.packEmoji||'📦';$('#shopPreviewProduct').textContent=S.productName||'ชื่อผลิตภัณฑ์';$('#shopPreviewBrand').textContent=(S.brandName||'แบรนด์ของคุณ')+' · '+({S:'100 g',M:'250 g',L:'500 g'}[S.packSize||'M']);$('#shopProductTitle').textContent=S.productName||'ชื่อสินค้า';$('#shopBrandTitle').textContent=S.brandName||'แบรนด์ของคุณ';$('#shopDescription').textContent=S.productDesc||'ผลิตภัณฑ์โปรตีนจากพืช คิดค้นใน Food Lab Tycoon';$('#shopShownPrice').textContent=money(Number.isFinite(price)&&price>0?price:0);$('#unitCost').textContent=money(cost);$('#unitMargin').textContent=money((Number.isFinite(price)?price:0)-cost);$('#saleAudience').textContent=(S.audiences||[]).length;$('#shopPriceHint').textContent=price>0?(price<cost?'⚠️ ราคาขายต่ำกว่าต้นทุนจำลอง อาจขาดทุนต่อชิ้น':price===cost?'ราคานี้เท่ากับต้นทุน ยังไม่มีกำไรขั้นต้น':'ราคาสูงกว่าต้นทุนจำลอง'): 'กรอกราคาขายที่มากกว่า 0 บาท';$('#listProduct').disabled=!!S.listed||!Number.isFinite(price)||price<=0||price>100000;}
+function initShop(){const cost=unitCost();$('#salePrice').value=S.salePrice||Math.ceil((cost*2)/5)*5;$('#salePrice').disabled=!!S.listed;$('#salePrice').oninput=()=>{S.salePrice=Number($('#salePrice').value);refreshShop();saveGame()};refreshShop();$('#listProduct').textContent=S.listed?'วางจำหน่ายแล้ว':'🚀 วางจำหน่ายสินค้า';if(S.listed)renderSales();}
+function createReviews(){const chosen=S.audiences&&S.audiences.length?S.audiences:['general'];const templates=[];chosen.forEach(k=>(AUDIENCES[k].reviews||[]).forEach(t=>templates.push(t)));const extra=['บรรจุภัณฑ์สวยงาม แต่ราคาค่อนข้างสูง','จัดส่งสะดวก อยากให้มีรสชาติให้เลือกเพิ่ม','ภาพรวมดี เหมาะกับการซื้อเป็นของว่าง'];const arr=[...templates,...extra].sort(()=>Math.random()-.5).slice(0,5);return arr.map(text=>({text,stars:(()=>{const r=Math.random();return r<.05?1:r<.13?2:r<.30?3:r<.68?4:5})()}));}
+function renderSales(){const d=S.sales;if(!d)return;$('#shopMetrics').hidden=false;$('#reviewArea').hidden=false;$('#shopReport').textContent='เปิดร้านสำเร็จ! ระบบจำลองยอดสั่งซื้อจากกลุ่มเป้าหมายและราคาที่คุณตั้ง';$('#soldUnits').textContent=d.units.toLocaleString('th-TH');$('#buyerCount').textContent=d.customers.toLocaleString('th-TH');$('#revenue').textContent=money(d.revenue);$('#totalCost').textContent=money(d.cost);$('#profit').textContent=(d.profit>=0?'+':'')+money(d.profit);$('#avgRating').textContent=d.rating.toFixed(1)+' / 5 ★';$('#reviewCount').textContent=d.reviews.length;$('#reviews').innerHTML=d.reviews.map(r=>`<div class="review"><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>${esc(r.text)}</div>`).join('');$('#shopReportNext').hidden=false;$('#listProduct').disabled=true;$('#salePrice').disabled=true;}
+$('#listProduct').onclick=()=>{if(S.listed)return;const price=Number($('#salePrice').value),cost=unitCost();if(!Number.isFinite(price)||price<=0||price>100000){$('#shopPriceHint').textContent='กรุณากรอกราคาขายเป็นตัวเลขมากกว่า 0 บาท';return;}const chosen=(S.audiences||[]).length;const fit=price>=cost*1.3&&price<=cost*2.8;const units=Math.max(8,Math.round((30+chosen*18+(fit?20:0)+Math.random()*35)*(S.packId==='box'||S.packId==='vacuum'?1.05:1)));const revenue=price*units,totalCost=cost*units;const reviews=createReviews();const rating=reviews.reduce((a,b)=>a+b.stars,0)/reviews.length;S.salePrice=price;S.listed=true;const customers=Math.max(5,Math.round(units*(.65+Math.random()*.2)));S.sales={units,customers,revenue,cost:totalCost,profit:revenue-totalCost,reviews,rating};$('#listProduct').textContent='วางจำหน่ายแล้ว';renderSales();award('shop',20);burst($('#shopPreview'),['🛍️','⭐','🎉'],18);saveGame();};
+$('#shopReportNext').onclick=()=>{if(S.listed)go('res')};
+
+/* Final business report */
+function initRes(){const d=S.sales||{units:0,customers:0,revenue:0,cost:0,profit:0,rating:0,reviews:[]};$('#rp').innerHTML=`<div class="package-preview" style="background:${esc(S.packColor||'#b9dfbd')}"><span class="pack-emoji">${esc(S.packEmoji||'📦')}</span><div class="label-sticker"><b>${esc(S.productName||'ผลิตภัณฑ์ของคุณ')}</b><small>${esc(S.brandName||'Food Lab')} · ${esc(({S:'100 g',M:'250 g',L:'500 g'}[S.packSize||'M']))}</small></div></div>`;$('#story').textContent=`${S.brandName||'แบรนด์ของคุณ'} เปิดตัว ${S.productName||'ผลิตภัณฑ์โปรตีนพืช'} สำเร็จ โดยเลือกบรรจุภัณฑ์ ${S.packName||'ที่ออกแบบเอง'} และเจาะกลุ่มลูกค้า ${(S.audiences||[]).map(k=>AUDIENCES[k].name).join(' / ')||'ผู้บริโภคทั่วไป'} ${d.profit>=0?'ธุรกิจมีกำไรจำลอง':'ยอดขายยังไม่ครอบคลุมต้นทุนจำลอง'} ควรนำรีวิวไปปรับสูตร ราคา และบรรจุภัณฑ์ในรอบถัดไป`;$('#stats').innerHTML=`<div class="metric"><b>${d.units.toLocaleString('th-TH')}</b><small>ชิ้นที่ขายได้</small></div><div class="metric"><b>${d.customers||0}</b><small>ลูกค้าที่ซื้อ</small></div><div class="metric"><b>${money(d.revenue)}</b><small>รายได้รวม</small></div><div class="metric"><b>${money(d.profit)}</b><small>กำไร/ขาดทุน</small></div><div class="metric"><b>${d.rating?d.rating.toFixed(1)+' ★':'—'}</b><small>คะแนนรีวิว</small></div><div class="metric"><b>${money(unitCost())}</b><small>ต้นทุนต่อชิ้น</small></div>`;$('#finalScore').textContent=S.score||0;$('#finalBar').style.width=Math.min(100,(S.score||0)/100*100)+'%';burst($('#rp'),['🎉','✨','💚','🌟'],18);}
+$('#playAgain').onclick=resetGame;$('#clearSave').onclick=()=>{resetGame();$('#story').textContent='ล้างข้อมูลบันทึกแล้ว เริ่มต้นสร้างผลิตภัณฑ์ใหม่ได้เลย'};
+
+/* Restore the last saved stage. The active mini-task restarts safely; completed stages and product choices remain saved. */
+try{const saved=JSON.parse(localStorage.getItem('foodLabTycoonSaveV1')||'null');if(saved&&saved.S){Object.assign(S,saved.S);if(Array.isArray(saved.vals)&&saved.vals.length===4)vals=saved.vals;applyDifficultyUI();go(order.includes(saved.cur)?saved.cur:'menu');}else{applyDifficultyUI();go('menu')}}catch(e){console.warn('อ่านข้อมูลบันทึกไม่สำเร็จ',e);applyDifficultyUI();go('menu')}
+
+</script></body></html>
